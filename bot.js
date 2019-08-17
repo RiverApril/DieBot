@@ -12,12 +12,14 @@ logger.add(new logger.transports.Console, {
 logger.level = "debug";
 
 
+
 // Discord
 
 var bot = new Discord.Client({
     token: auth.token,
     autorun: true
 });
+
 bot.on("ready", function(evt){
     logger.info("Connected");
     logger.info("Logged in as: ");

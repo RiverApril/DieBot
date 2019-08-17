@@ -5,7 +5,7 @@
   "main": "bot.js",
   "author": "Nedearb",
   "dependencies": {
-    "discord.io": "^2.5.3",
+    "discord.io": "github:izy521/discord.io",
     "winston": "^3.2.1"
   }
 }
