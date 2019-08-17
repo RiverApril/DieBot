@@ -1,11 +1,11 @@
 {
-    "name": "diebot",
-    "version": "1.0.0",
-    "description": "Discord Bot that rolls dice",
-    "main": "bot.js",
-    "author": "Nedearb",
-    "dependencies": {
-        "discord.io": "^2.5.3",
-        "winston": "^3.2.1"
-    }
+  "name": "diebot",
+  "version": "1.0.0",
+  "description": "Discord Bot that rolls dice",
+  "main": "bot.js",
+  "author": "Nedearb",
+  "dependencies": {
+    "discord.io": "^2.5.3",
+    "winston": "^3.2.1"
+  }
 }
