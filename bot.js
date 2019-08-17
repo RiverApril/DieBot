@@ -25,6 +25,10 @@ let SETTING_MEAN = 1;
 let SETTING_MIN = 2;
 let SETTING_MAX = 3;
 
+let D20_NORMAL = 1;
+let D20_ADVANTAGE = 2;
+let D20_DISADVANTAGE = 3;
+
 function rollDie(sides, setting){
     if(setting == SETTING_MEAN){
         return sides/2 + 0.5;
@@ -34,6 +38,23 @@ function rollDie(sides, setting){
         return sides;
     }else{
         return 1 + Math.floor(Math.random() * sides);
+    }
+}
+
+function rollD20(style){
+    if(style == D20_NORMAL){
+        return "rolled **" + rollDie(20) + "**.";
+    }else{
+        let a = rollDie(20);
+        let b = rollDie(20);
+        if(style == D20_ADVANTAGE){
+            val = Math.max(a, b);
+        } else if(style == D20_DISADVANTAGE){
+            val = Math.min(a, b);
+        }else{
+            return "Invalid D20 style."
+        }
+        return "rolled **" + val + "**. (" + a + ", " + b + ")";
     }
 }
 
@@ -173,38 +194,67 @@ bot.on("message", function(user, userID, channelID, message, evt) {
         let setting = 0;
 
         args = args.slice(1);
-        switch(cmd){
-            case "roll": {
-                let result = rollDiceExp(args);
-                bot.sendMessage({
-                    to: channelID,
-                    message: "<@" + userID + "> " + result
-                });
-                break;
+        if(args.length > 0){
+            switch(cmd){
+                case "roll": {
+                    let result = rollDiceExp(args);
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "<@" + userID + "> " + result
+                    });
+                    break;
+                }
+                case "rollavg": {
+                    let result = rollDiceExp(args, SETTING_MEAN);
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "<@" + userID + "> " + result
+                    });
+                    break;
+                }
+                case "rollmin": {
+                    let result = rollDiceExp(args, SETTING_MIN);
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "<@" + userID + "> " + result
+                    });
+                    break;
+                }
+                case "rollmax": {
+                    let result = rollDiceExp(args, SETTING_MAX);
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "<@" + userID + "> " + result
+                    });
+                    break;
+                }
             }
-            case "rollavg": {
-                let result = rollDiceExp(args, SETTING_MEAN);
-                bot.sendMessage({
-                    to: channelID,
-                    message: "<@" + userID + "> " + result
-                });
-                break;
-            }
-            case "rollmin": {
-                let result = rollDiceExp(args, SETTING_MIN);
-                bot.sendMessage({
-                    to: channelID,
-                    message: "<@" + userID + "> " + result
-                });
-                break;
-            }
-            case "rollmax": {
-                let result = rollDiceExp(args, SETTING_MAX);
-                bot.sendMessage({
-                    to: channelID,
-                    message: "<@" + userID + "> " + result
-                });
-                break;
+        }else{
+            switch(cmd){
+                case "roll": {
+                    let result = rollD20(D20_NORMAL);
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "<@" + userID + "> " + result
+                    });
+                    break;
+                }
+                case "rolladv": {
+                    let result = rollD20(D20_ADVANTAGE);
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "<@" + userID + "> " + result
+                    });
+                    break;
+                }
+                case "rolldis": {
+                    let result = rollD20(D20_DISADVANTAGE);
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "<@" + userID + "> " + result
+                    });
+                    break;
+                }
             }
         }
     }
