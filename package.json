@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Discord Bot that rolls dice",
   "main": "bot.js",
-  "author": "Nedearb",
+  "author": "April",
   "dependencies": {
     "discord.io": "github:izy521/discord.io",
     "winston": "^3.2.1"
