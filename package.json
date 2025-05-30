@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Discord Bot that rolls dice",
   "main": "bot.js",
-  "author": "April",
+  "author": "Emily",
   "dependencies": {
-    "discord.io": "github:izy521/discord.io",
-    "winston": "^3.2.1"
+    "discord.js": "^14.19.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.27.0",
+    "eslint": "^9.27.0"
   }
 }

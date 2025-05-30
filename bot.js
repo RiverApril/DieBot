@@ -1,101 +1,64 @@
-#!/usr/bin/env node
+const fs = require('node:fs');
+const path = require('node:path');
+const { Client, Collection, Events, GatewayIntentBits, REST, Routes } = require('discord.js');
+const { token, clientId } = require('./auth.json');
 
-var Discord = require("discord.io");
-var logger = require("winston");
-var auth = require("./auth.json");
-var dice = require("./dice")
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-logger.remove(logger.transports.Console);
-logger.add(new logger.transports.Console, {
-    colorize: true
-});
-logger.level = "debug";
+// Setup commands list
+client.commands = new Collection();
 
-
-
-// Discord
-
-var bot = new Discord.Client({
-    token: auth.token,
-    autorun: true
-});
-
-bot.on("ready", function(evt){
-    logger.info("Connected");
-    logger.info("Logged in as: ");
-    logger.info(bot.username + " - (" + bot.id + ")");
-});
-
-bot.on("message", function(user, userID, channelID, message, evt) {
-    if(message.substr(0, 1) == "!"){
-        var args = message.substr(1).split(" ");
-        var cmd = args[0].toLowerCase();
-
-        let setting = 0;
-
-        args = args.slice(1);
-        if(args.length > 0){
-            switch(cmd){
-                case "roll": {
-                    let result = dice.rollDiceExp(args);
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "<@" + userID + "> " + result
-                    });
-                    break;
-                }
-                case "rollavg": {
-                    let result = dice.rollDiceExp(args, "mean");
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "<@" + userID + "> " + result
-                    });
-                    break;
-                }
-                case "rollmin": {
-                    let result = dice.rollDiceExp(args, "min");
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "<@" + userID + "> " + result
-                    });
-                    break;
-                }
-                case "rollmax": {
-                    let result = dice.rollDiceExp(args, "max");
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "<@" + userID + "> " + result
-                    });
-                    break;
-                }
-            }
-        }else{
-            switch(cmd){
-                case "roll": {
-                    let result = dice.rollD20("normal");
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "<@" + userID + "> " + result
-                    });
-                    break;
-                }
-                case "rolladv": {
-                    let result = dice.rollD20("advantage");
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "<@" + userID + "> " + result
-                    });
-                    break;
-                }
-                case "rolldis": {
-                    let result = dice.rollD20("disadvantage");
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "<@" + userID + "> " + result
-                    });
-                    break;
-                }
-            }
-        }
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file);
+    const command = require(filePath);
+    // Set a new item in the Collection with the key as the command name and the value as the exported module
+    if ('data' in command && 'execute' in command) {
+        client.commands.set(command.data.name, command);
+    } else {
+        console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
     }
+}
+
+client.once(Events.ClientReady, readyClient => {
+	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+
+    const rest = new REST().setToken(token);
+
+    let commands = [];
+
+    for (const [name, command] of client.commands) {
+        commands.push(command.data.toJSON());
+    }
+
+    rest.put(
+        Routes.applicationCommands(clientId),
+        { body: commands },
+    );
+    console.log(`Added ${commands.length} command${commands.length == 1 ? '' : 's'}`);
+});
+
+client.login(token);
+
+client.on(Events.InteractionCreate, async interaction => {
+	if (!interaction.isChatInputCommand()) return;
+
+	const command = interaction.client.commands.get(interaction.commandName);
+
+	if (!command) {
+		console.error(`No command matching ${interaction.commandName} was found.`);
+		return;
+	}
+
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		if (interaction.replied || interaction.deferred) {
+			await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+		} else {
+			await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+		}
+	}
 });
